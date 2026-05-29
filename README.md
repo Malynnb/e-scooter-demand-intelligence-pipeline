@@ -6,9 +6,15 @@ An end-to-end data engineering project using Python, Web Scraping, APIs and MySQ
 
 ## 📖 Project Overview
 
-This project was built during my Data Analytics training to develop an end-to-end data pipeline that collects external data, transforms it, and stores it in a relational database.
+The objective of this project is not to directly predict scooter demand, but to build a data pipeline that collects external demand indicators that could later be used for forecasting and operational decision-making.
 
-The goal is to help an e-scooter company predict where scooters should be placed by analyzing external factors that influence demand.
+Examples include:
+
+- Population density
+- Weather conditions
+- Tourist arrivals via airports
+
+The collected data is stored in a structured MySQL database for future analysis.
 
 The project combines:
 
@@ -19,7 +25,9 @@ The project combines:
 - Database Design
 - ETL Concepts
 
+
 ---
+
 
 ## 🎯 Business Problem
 
@@ -55,25 +63,33 @@ Questions explored:
 
 - OpenWeather API
 - AeroDataBox API
-- Ticketmaster API
 
 ### Development Tools
 
 - VS Code
 - Jupyter Notebook
-- Git
-- GitHub
 
 ---
 
+
 ## 📊 Data Sources
 
-| Source | Method | Data Collected |
+
+| Source | Method | Information Collected |
 |----------|----------|----------|
-| Wikipedia | Web Scraping | Population, area, coordinates, elevation |
-| OpenWeather | REST API | Temperature, rain probability, wind speed |
-| AeroDataBox | REST API | Flight arrivals |
-| Ticketmaster | REST API | Events and concerts |
+| Wikipedia | Web Scraping | Population, area, coordinates and elevation |
+| OpenWeather | REST API | Weather forecasts including temperature, wind speed and precipitation |
+| AeroDataBox | REST API | Airport arrival information for selected airports |
+
+
+## ⚠️ Project Scope
+
+Due to API limitations on the AeroDataBox free tier, flight data was collected for a limited set of airports:
+
+- Berlin Brandenburg Airport (BER)
+- Hamburg Airport (HAM)
+
+The project architecture was designed to support additional airports and cities once broader API access becomes available.
 
 ---
 
@@ -88,7 +104,7 @@ Collect data from:
 - Wikipedia
 - OpenWeather API
 - AeroDataBox API
-- Ticketmaster API
+
 
 ### Transform
 
@@ -166,26 +182,6 @@ headers = {
 
 ---
 
-## 🎵 Events API
-
-Upcoming events were collected using the Ticketmaster API.
-
-Data collected:
-
-- Event name
-- Venue
-- Event date
-- Classification
-
-Example:
-
-```python
-events_response = requests.get(ticketmaster_url)
-events_data = events_response.json()
-```
-
----
-
 ## 🗄 Database Design
 
 The database was designed using a relational structure.
@@ -197,8 +193,8 @@ cities
 │
 ├── populations
 ├── weather
-├── flights
-└── events
+└── flights
+
 ```
 
 ### Relationship Structure
@@ -208,7 +204,6 @@ cities.city_id
         │
         ├── weather.city_id
         ├── flights.city_id
-        ├── events.city_id
         └── populations.city_id
 ```
 
@@ -297,61 +292,6 @@ VALUES (...);
 
 ---
 
-## 🚀 Future Improvements
-
-Possible next steps:
-
-- Automate the pipeline using cloud services
-- Schedule daily data collection
-- Create dashboards using Tableau
-- Build a machine learning model to predict scooter demand
-- Deploy the project using AWS
-
----
-
-## ▶️ Getting Started
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/yourusername/gans-predicting-scooter-demand.git
-```
-
-### 2. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Create Database
-
-Run:
-
-```sql
-gans_schema.sql
-```
-
-inside MySQL Workbench.
-
-### 4. Configure Environment Variables
-
-Create a `.env` file:
-
-```text
-OPENWEATHER_KEY=
-RAPIDAPI_KEY=
-TICKETMASTER_KEY=
-MYSQL_PASSWORD=
-```
-
-### 5. Run Pipeline
-
-```bash
-python main.py
-```
-
----
-
 ## 📂 Project Structure
 
 ```text
@@ -367,7 +307,6 @@ gans-predicting-scooter-demand/
 │   ├── wikipedia_scraper.py
 │   ├── weather_api.py
 │   ├── flight_api.py
-│   ├── ticketmaster_api.py
 │   └── database.py
 │
 ├── requirements.txt
@@ -377,20 +316,4 @@ gans-predicting-scooter-demand/
 
 ---
 
-## 👤 Author
 
-**Malynn Buranawichian**
-
-Aspiring Data Analyst 
-
-### Skills
-
-- Python
-- SQL
-- MySQL
-- APIs
-- Web Scraping
-- Pandas
-- ETL Pipelines
-- Git & GitHub
-- Data Visualization
