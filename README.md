@@ -1,28 +1,61 @@
-## 📊 Data Sources
+# 🛴 Gans E-Scooter Demand Intelligence Pipeline
 
-| Source          | Method       | Information Collected                                                 |
-| --------------- | ------------ | --------------------------------------------------------------------- |
-| Wikipedia       | Web Scraping | City name, state, population, land area and population density        |
-| OpenWeather API | REST API     | Temperature, humidity, weather condition and forecast timestamp       |
-| AeroDataBox API | REST API     | Airport name, IATA code, ICAO code, municipality and airport location |
+## 📖 Project Overview
+
+This project builds an end-to-end ETL (Extract, Transform, Load) pipeline for Gans, a fictional e-scooter sharing company.
+
+The goal is to collect external demand indicators that could support future scooter demand forecasting and operational decision-making. Rather than predicting demand directly, this project focuses on gathering and storing relevant city-level information from multiple data sources.
+
+The collected datasets are processed using Python and stored in a MySQL database for future analysis.
 
 ---
 
-## ⚠️ Project Scope
+## 🎯 Business Problem
 
-The AeroDataBox free subscription tier restricted access to detailed flight-arrival schedules.
+Gans wants to improve scooter availability by understanding factors that may influence mobility demand across cities.
 
-As a result, this project focuses on collecting airport infrastructure data instead of flight schedules.
+Questions explored include:
 
-Airport data was successfully collected for the following German cities:
+* Which cities have the largest populations?
+* How do weather conditions vary between cities?
+* Which cities have strong airport connectivity?
+* Can airport infrastructure serve as a proxy indicator for mobility activity?
 
-* Berlin
-* Munich
-* Frankfurt
-* Hamburg
-* Cologne
+---
 
-A total of **7 airport connections** were identified and stored in MySQL.
+## 🛠 Technologies Used
+
+### Programming & Analysis
+
+* Python
+* Pandas
+* Requests
+* SQLAlchemy
+
+### Database
+
+* MySQL
+* MySQL Workbench
+
+### APIs
+
+* OpenWeather API
+* AeroDataBox API
+
+### Development Tools
+
+* VS Code
+* Jupyter Notebook
+
+---
+
+## 📊 Data Sources
+
+| Source          | Method       | Information Collected                                                   |
+| --------------- | ------------ | ----------------------------------------------------------------------- |
+| Wikipedia       | Web Scraping | City name, state, population estimate, land area and population density |
+| OpenWeather API | REST API     | Temperature, humidity, weather condition and forecast timestamp         |
+| AeroDataBox API | REST API     | Airport name, IATA code, ICAO code, municipality and airport location   |
 
 ---
 
@@ -38,19 +71,19 @@ Data was collected from:
 
 ### Transform
 
-The collected data was processed using Pandas:
+The collected data was transformed using Pandas:
 
-* Cleaned raw datasets
-* Standardized column names
-* Parsed JSON responses
-* Combined API results into DataFrames
-* Prepared data for database storage
+* Parsing JSON responses
+* Cleaning datasets
+* Standardizing columns
+* Creating DataFrames
+* Preparing data for database storage
 
 ### Load
 
-The transformed datasets were loaded into MySQL using SQLAlchemy.
+The processed datasets were loaded into MySQL using SQLAlchemy.
 
-Generated tables:
+Tables created:
 
 * cities
 * weather
@@ -58,31 +91,34 @@ Generated tables:
 
 ---
 
-## 🌍 Web Scraping: German Cities
+## 🌍 German Cities Dataset
 
-German city information was collected from Wikipedia using Pandas.
+German city information was collected from Wikipedia using Pandas `read_html()`.
 
 ### Data Collected
 
 * City
 * State
-* Population
+* Population Estimate
 * Land Area
 * Population Density
+* Geographic Location
 
 ### Example
 
 ```python
-tables = pd.read_html(url)
+tables = pd.read_html(
+    "https://en.wikipedia.org/wiki/List_of_cities_in_Germany_by_population"
+)
 
 cities_df = tables[0]
 ```
 
 ---
 
-## 🌦 Weather Forecast API
+## 🌦 Weather Forecast Dataset
 
-Weather forecasts were collected using the OpenWeather API.
+Weather forecast information was collected using the OpenWeather API.
 
 ### Data Collected
 
@@ -102,7 +138,7 @@ weather_json = response.json()
 
 ---
 
-## ✈️ Airport Infrastructure API
+## ✈️ Airport Infrastructure Dataset
 
 Airport information was collected using AeroDataBox through RapidAPI.
 
@@ -115,6 +151,14 @@ Airport information was collected using AeroDataBox through RapidAPI.
 * Latitude
 * Longitude
 
+### Cities Processed
+
+* Berlin
+* Munich
+* Frankfurt
+* Hamburg
+* Cologne
+
 ### Airports Identified
 
 | City      | Airport Code |
@@ -126,6 +170,8 @@ Airport information was collected using AeroDataBox through RapidAPI.
 | Hamburg   | HAM          |
 | Cologne   | CGN          |
 | Cologne   | DUS          |
+
+A total of **7 airport connections** were collected and stored.
 
 ### Example
 
@@ -143,7 +189,28 @@ airports = pd.json_normalize(
 
 ---
 
+## ⚠️ Project Scope
+
+The AeroDataBox free subscription tier restricted access to detailed flight-arrival schedules.
+
+As a result, this project focuses on airport infrastructure data rather than flight-arrival information.
+
+The current architecture can easily be extended in future versions to include:
+
+* Flight arrivals
+* Local events
+* Tourism indicators
+* Demand forecasting models
+
+---
+
 ## 🗄 Database Design
+
+### Database
+
+```text
+world_data
+```
 
 ### Tables
 
@@ -171,27 +238,106 @@ Wikipedia
   weather      airports
 ```
 
-The database stores weather forecasts and airport infrastructure data for selected German cities and can be expanded with additional demand indicators in future versions.
+---
+
+## 💾 SQL Integration
+
+DataFrames generated in Python were loaded directly into MySQL using SQLAlchemy.
+
+Example:
+
+```python
+weather_df.to_sql(
+    "weather",
+    con=engine,
+    if_exists="replace",
+    index=False
+)
+
+airports_df.to_sql(
+    "airports",
+    con=engine,
+    if_exists="replace",
+    index=False
+)
+```
 
 ---
 
-## 📈 Business Insights
+## 📈 Example Insights
 
-The collected datasets help identify cities with favorable conditions for future scooter demand analysis.
+The collected datasets can be used to support future scooter demand analysis.
 
-### Key Findings
+Key observations:
 
-* Berlin contains two airport connections (BER and TXL).
+* Berlin has two airport connections (BER and TXL).
 * Frankfurt contains Germany's largest international airport (FRA).
-* Airport connectivity can serve as an indicator of tourism and mobility activity.
-* Weather conditions can be combined with airport infrastructure data to support future scooter-demand forecasting.
+* Airport infrastructure may serve as an indicator of mobility and tourism activity.
+* Weather conditions can be combined with airport data to support future forecasting models.
 
-### Example Analysis
+---
 
-By combining airport and weather datasets, cities can be compared based on:
+## 🚀 Skills Demonstrated
 
-* Transportation infrastructure
-* Weather conditions
-* Potential mobility demand
+### Python
 
-This creates a foundation for future demand forecasting models and operational planning.
+* Functions
+* Loops
+* API Requests
+* JSON Processing
+* Data Cleaning
+* Pandas DataFrames
+
+### SQL
+
+* Database Design
+* Data Loading
+* SQL Queries
+* Table Management
+
+### Data Engineering
+
+* ETL Pipelines
+* API Integration
+* Data Transformation
+* Database Storage
+
+### Web Scraping
+
+* Data Extraction
+* HTML Table Processing
+* Pandas `read_html()`
+
+---
+
+## 📂 Project Structure
+
+```text
+gans-predicting-scooter-demand/
+│
+├── notebooks/
+│   ├── 01_city_scraping.ipynb
+│   ├── 02_weather_api.ipynb
+│   └── 03_airports_api.ipynb
+│
+├── src/
+│   └── gans_etl_pipeline.py
+│
+├── sql/
+│   └── analysis_queries.sql
+│
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
+---
+
+## 🔮 Future Improvements
+
+* Automate daily data collection
+* Integrate detailed flight-arrival schedules
+* Add local event information
+* Build demand forecasting models
+* Deploy the pipeline to the cloud
+* Create interactive dashboards
