@@ -1,142 +1,81 @@
-# E-scooter-Demand-Intelligence-Pipeline
-An end-to-end data engineering project using Python, Web Scraping, APIs and MySQL to collect and store external demand signals including weather forecasts, flight arrivals and local events.
-
-
-# 🛴 Gans – Predicting Where E-Scooters Are Needed
-
-## 📖 Project Overview
-
-The objective of this project is not to directly predict scooter demand, but to build a data pipeline that collects external demand indicators that could later be used for forecasting and operational decision-making.
-
-Examples include:
-
-- Population density
-- Weather conditions
-- Tourist arrivals via airports
-
-The collected data is stored in a structured MySQL database for future analysis.
-
-The project combines:
-
-- Web Scraping
-- REST APIs
-- Python
-- SQL
-- Database Design
-- ETL Concepts
-
-
----
-
-
-## 🎯 Business Problem
-
-Gans is a fictional e-scooter sharing company operating across European cities.
-
-Scooters only generate revenue when they are available where customers need them. To improve scooter placement, Gans wants to identify external factors that can help predict future demand.
-
-Questions explored:
-
-- Which cities have the highest potential demand?
-- How does weather affect scooter usage?
-- Do flight arrivals increase demand?
-- Can local events predict demand spikes?
-
----
-
-## 🛠 Technologies Used
-
-### Programming & Analysis
-
-- Python
-- Pandas
-- Requests
-- BeautifulSoup
-- SQLAlchemy
-
-### Database
-
-- MySQL
-- MySQL Workbench
-
-### APIs
-
-- OpenWeather API
-- AeroDataBox API
-
-### Development Tools
-
-- VS Code
-- Jupyter Notebook
-
----
-
-
 ## 📊 Data Sources
 
+| Source          | Method       | Information Collected                                                 |
+| --------------- | ------------ | --------------------------------------------------------------------- |
+| Wikipedia       | Web Scraping | City name, state, population, land area and population density        |
+| OpenWeather API | REST API     | Temperature, humidity, weather condition and forecast timestamp       |
+| AeroDataBox API | REST API     | Airport name, IATA code, ICAO code, municipality and airport location |
 
-| Source | Method | Information Collected |
-|----------|----------|----------|
-| Wikipedia | Web Scraping | Population, area, coordinates and elevation |
-| OpenWeather | REST API | Weather forecasts including temperature, wind speed and precipitation |
-| AeroDataBox | REST API | Airport arrival information for selected airports |
-
+---
 
 ## ⚠️ Project Scope
 
-Due to API limitations on the AeroDataBox free tier, flight data was collected for a limited set of airports:
+The AeroDataBox free subscription tier restricted access to detailed flight-arrival schedules.
 
-- Berlin Brandenburg Airport (BER)
-- Hamburg Airport (HAM)
+As a result, this project focuses on collecting airport infrastructure data instead of flight schedules.
 
-The project architecture was designed to support additional airports and cities once broader API access becomes available.
+Airport data was successfully collected for the following German cities:
+
+* Berlin
+* Munich
+* Frankfurt
+* Hamburg
+* Cologne
+
+A total of **7 airport connections** were identified and stored in MySQL.
 
 ---
 
 ## 🔄 ETL Pipeline
 
-The project follows a simple ETL process:
-
 ### Extract
 
-Collect data from:
+Data was collected from:
 
-- Wikipedia
-- OpenWeather API
-- AeroDataBox API
-
+* Wikipedia
+* OpenWeather API
+* AeroDataBox API
 
 ### Transform
 
-- Clean raw data
-- Handle missing values
-- Format timestamps
-- Normalize columns
-- Convert JSON responses into structured tables
+The collected data was processed using Pandas:
+
+* Cleaned raw datasets
+* Standardized column names
+* Parsed JSON responses
+* Combined API results into DataFrames
+* Prepared data for database storage
 
 ### Load
 
-Store data into a MySQL database using SQLAlchemy.
+The transformed datasets were loaded into MySQL using SQLAlchemy.
+
+Generated tables:
+
+* cities
+* weather
+* airports
 
 ---
 
-## 🌍 Web Scraping: Wikipedia
+## 🌍 Web Scraping: German Cities
 
-BeautifulSoup was used to collect city information from Wikipedia.
+German city information was collected from Wikipedia using Pandas.
 
-Data collected:
+### Data Collected
 
-- Population
-- Area
-- Elevation
-- Latitude
-- Longitude
+* City
+* State
+* Population
+* Land Area
+* Population Density
 
-Example:
+### Example
 
 ```python
-response = requests.get(url)
-soup = BeautifulSoup(response.content, "html.parser")
+tables = pd.read_html(url)
+
+cities_df = tables[0]
 ```
 
 ---
@@ -145,175 +84,114 @@ soup = BeautifulSoup(response.content, "html.parser")
 
 Weather forecasts were collected using the OpenWeather API.
 
-Data collected:
+### Data Collected
 
-- Forecast timestamp
-- Temperature
-- Rain probability
-- Wind speed
+* City
+* Temperature
+* Humidity
+* Weather Condition
+* Forecast Timestamp
 
-Example:
+### Example
 
 ```python
-weather_response = requests.get(weather_url)
-weather_data = weather_response.json()
+response = requests.get(url)
+
+weather_json = response.json()
 ```
 
 ---
 
-## ✈️ Flight Arrivals API
+## ✈️ Airport Infrastructure API
 
-Flight arrival information was collected using AeroDataBox through RapidAPI.
+Airport information was collected using AeroDataBox through RapidAPI.
 
-Data collected:
+### Data Collected
 
-- Airport code
-- Flight number
-- Scheduled arrival time
-- Arrival airport
+* Airport Name
+* IATA Code
+* ICAO Code
+* Municipality
+* Latitude
+* Longitude
 
-Example:
+### Airports Identified
+
+| City      | Airport Code |
+| --------- | ------------ |
+| Berlin    | BER          |
+| Berlin    | TXL          |
+| Munich    | MUC          |
+| Frankfurt | FRA          |
+| Hamburg   | HAM          |
+| Cologne   | CGN          |
+| Cologne   | DUS          |
+
+### Example
 
 ```python
-headers = {
-    "X-RapidAPI-Key": api_key
-}
+response = requests.get(
+    url,
+    headers=headers,
+    params=querystring
+)
+
+airports = pd.json_normalize(
+    response.json()["items"]
+)
 ```
 
 ---
 
 ## 🗄 Database Design
 
-The database was designed using a relational structure.
-
 ### Tables
 
 ```text
-cities
+world_data
 │
-├── populations
+├── cities
 ├── weather
-└── flights
-
+└── airports
 ```
 
-### Relationship Structure
+### Data Flow
 
 ```text
-cities.city_id
-        │
-        ├── weather.city_id
-        ├── flights.city_id
-        └── populations.city_id
+Wikipedia
+      │
+      ▼
+   cities
+      │
+      ├─────────────┐
+      ▼             ▼
+ OpenWeather   AeroDataBox
+      │             │
+      ▼             ▼
+  weather      airports
 ```
 
-The `city_id` acts as the primary key in the cities table and as a foreign key in all related tables.
-
-This design allows historical data to be stored without overwriting previous records.
+The database stores weather forecasts and airport infrastructure data for selected German cities and can be expanded with additional demand indicators in future versions.
 
 ---
 
-## 💾 SQL Skills Demonstrated
+## 📈 Business Insights
 
-### Creating Databases
+The collected datasets help identify cities with favorable conditions for future scooter demand analysis.
 
-```sql
-CREATE DATABASE gans;
-```
+### Key Findings
 
-### Creating Tables
+* Berlin contains two airport connections (BER and TXL).
+* Frankfurt contains Germany's largest international airport (FRA).
+* Airport connectivity can serve as an indicator of tourism and mobility activity.
+* Weather conditions can be combined with airport infrastructure data to support future scooter-demand forecasting.
 
-```sql
-CREATE TABLE cities (
-    city_id INT PRIMARY KEY,
-    city_name VARCHAR(50)
-);
-```
+### Example Analysis
 
-### Primary Keys
+By combining airport and weather datasets, cities can be compared based on:
 
-```sql
-PRIMARY KEY(city_id)
-```
+* Transportation infrastructure
+* Weather conditions
+* Potential mobility demand
 
-### Foreign Keys
-
-```sql
-FOREIGN KEY(city_id)
-REFERENCES cities(city_id)
-```
-
-### Inserting Data
-
-```sql
-INSERT INTO cities
-VALUES (...);
-```
-
----
-
-## 📈 Skills Demonstrated
-
-### Python
-
-- Functions
-- Loops
-- Dictionaries
-- Data Cleaning
-- API Requests
-
-### SQL
-
-- Database Design
-- Table Relationships
-- Primary Keys
-- Foreign Keys
-- Data Insertion
-
-### Data Engineering
-
-- ETL Pipelines
-- Data Collection
-- Data Storage
-- Data Transformation
-
-### Web Scraping
-
-- HTML Parsing
-- BeautifulSoup
-- Extracting Structured Data
-
-### APIs
-
-- GET Requests
-- JSON Handling
-- API Authentication
-- Working with Nested JSON
-
----
-
-## 📂 Project Structure
-
-```text
-gans-predicting-scooter-demand/
-│
-├── notebooks/
-│   └── gans_pipeline.ipynb
-│
-├── sql/
-│   └── gans_schema.sql
-│
-├── src/
-│   ├── wikipedia_scraper.py
-│   ├── weather_api.py
-│   ├── flight_api.py
-│   └── database.py
-│
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
-
----
-
-
+This creates a foundation for future demand forecasting models and operational planning.
